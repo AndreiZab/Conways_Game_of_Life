@@ -37,24 +37,26 @@ void    print_usage()
     exit (0);
 }
 
-void    print_table (vector<string> &table)
+void    print_table (vector<vector<bool>> &table)
 {
-    for (auto &row : table) {
-        cout << row;
+    for (auto row = table.begin(); row != table.end(); ++row) {
+        for (auto col = row->begin(); col != row->end(); ++col) {
+            std::cout << *col;
+        }
         cout << '\n';
     }
     cout << '\n';
 }
 
-void	generate_table(vector<string> &table)
+void	generate_table(vector<vector<bool>> &table)
 {
     mt19937 mt(time(nullptr));
-    uniform_int_distribution<int> map_dist(5, 20);
+    uniform_int_distribution<int> map_dist(5, 10);
     int width = map_dist(mt);
     int height = map_dist(mt);
-    uniform_int_distribution<char> dist('0', '1');
+    uniform_int_distribution<bool> dist(false, true);
     for (int i = 0; i < height; ++i) {
-        string line;
+        vector <bool> line;
         for (int j = 0; j < width; ++j) {
             line.push_back(dist(mt));
         }
@@ -76,26 +78,30 @@ string remove_spaces(string &line)
     return (line);
 }
 
-void	read_table(const char *name, vector<string> &table)
+void	read_table(const char *name, vector<vector<bool>> &table)
 {
 	ifstream file(name);
 	if (!file)
         throw "File could not be opened";
-	//	write_error("File could not be opened");
 	while (file) {
         string line;
+        vector <bool> str;
         getline(file, line);
         remove_spaces(line);
         for (char c : line) {
-            if (c != '0' && c != '1')
+            if (c == '1')
+                str.push_back(true);
+            else if (c == '0')
+                str.push_back(false);
+            else
                 throw "Invalid character in board(only 1 and 0 allowed)";
         }
-        if (!line.empty())
-            table.push_back(line);
+        if  (!str.empty())
+            table.push_back(str);
     }
 }
 
-void    input_validation(vector<string> &table, int argc, char *argv[])
+void    input_validation(vector<vector<bool>> &table, int argc, char *argv[])
 {
     if (argc == 1 || !strcmp(argv[1], "-h") || !strcmp(argv[1], "--help"))
         print_usage();
@@ -105,12 +111,11 @@ void    input_validation(vector<string> &table, int argc, char *argv[])
         read_table(argv[2], table);
     else if (argc > 3)
         throw "Too many arguments";
-        //write_error("Too many arguments");
     else
         print_usage();
 }
 
-int     cell_neighbors(const vector<string> &table, const int row, const int col)
+int     cell_neighbors(const vector<vector<bool>> &table, const int row, const int col)
 {
     int neig (0);
     for (int i = -1; i < 2; ++i) {
@@ -121,30 +126,30 @@ int     cell_neighbors(const vector<string> &table, const int row, const int col
                 continue ;
             if (row + i >= table.size() || col + j >= table[row + i].size())
                 continue ;
-            neig += table[row + i][col + j] - '0';
+            neig += static_cast<int>(table[row + i][col + j]);
         }
     }
     return (neig);
 }
 
-bool interaction (vector<string> &table)
+bool interaction (vector<vector<bool>> &table)
 {
     bool all_zero (false);
     bool no_changes (true);
-    const vector<string> last_state (table);
+    const vector<vector<bool>> last_state (table);
 
     for (int row = 0; row < table.size(); ++row) {
         for (int col = 0; col < table[row].size(); ++col) {
             int neighbors = cell_neighbors(last_state, row, col);
-           if (last_state[row][col] == '1' && (neighbors > 3 || neighbors < 2)) {
-               table[row][col] -= 1;
+           if (last_state[row][col] && (neighbors > 3 || neighbors < 2)) {
+               table[row][col] = false;
                no_changes = false;
            }
-           else if (last_state[row][col] == '0' && neighbors == 3) {
-               table[row][col] += 1;
+           else if (!last_state[row][col] && neighbors == 3) {
+               table[row][col] = true;
                no_changes = false;
            }
-           if (!all_zero && table[row][col] == '1') {
+           if (!all_zero && table[row][col]) {
                all_zero = true;
            }
         }
@@ -158,8 +163,7 @@ bool interaction (vector<string> &table)
 
 int		main(int argc, char *argv[])
 {
- //   vector<vector<bool>> table;
-    vector<string> table;
+    vector<vector<bool>> table;
     try {
         input_validation(table, argc, argv);
         bool loop(true);
