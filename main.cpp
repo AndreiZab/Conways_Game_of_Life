@@ -5,10 +5,8 @@
 
 #include <fstream>
 #include <cstdlib>
-#include <time.h> //clock()
-#include <chrono> //sleep 2.0
-#include <thread> // sleep 2.0
-//#include <zconf.h>
+#include <chrono>
+#include <thread>
 
 using namespace std; // I can do it here?
 
@@ -41,7 +39,7 @@ void    print_table (vector<vector<bool>> &table)
 {
     for (auto row = table.begin(); row != table.end(); ++row) {
         for (auto col = row->begin(); col != row->end(); ++col) {
-            std::cout << *col;
+            cout << *col;
         }
         cout << '\n';
     }
@@ -132,7 +130,7 @@ int     cell_neighbors(const vector<vector<bool>> &table, const int row, const i
     return (neig);
 }
 
-bool interaction (vector<vector<bool>> &table)
+bool    interaction (vector<vector<bool>> &table)
 {
     bool all_zero (false);
     bool no_changes (true);
@@ -188,7 +186,6 @@ int		main(int argc, char *argv[])
         cerr << "We caught an exception of an undetermined type!\n";
         exit(1);
     }
-//	free_memory(table); dont need, lol
 	return(0);
 
 }
