@@ -13,13 +13,11 @@ using namespace std; // I can do it here?
 /*
 Дана доска размером M × N клеток.
 Клетка может находиться в одном из двух состояний: 1 — живая, 0 — мёртвая. Каждая клетка взаимодействует с восемью соседями.
-
 Правила таковы:
 	Живая клетка, у которой меньше двух живых соседей, погибает.
 	Живая клетка, у которой два или три живых соседа, выживает.
 	Живая клетка, у которой больше трёх живых соседей, погибает.
 	Мёртвая клетка, у которой три живых соседа, возрождается.
-
 Напишите программу, которая будет:
 — случайным образом генерить стартовое состояние;
 — уметь получать его из файла (способ выбирается через параметры запуска в консоли);
@@ -49,7 +47,7 @@ void    print_table (vector<vector<bool>> &table)
 void	generate_table(vector<vector<bool>> &table)
 {
     mt19937 mt(time(nullptr));
-    uniform_int_distribution<int> map_dist(5, 10);
+    uniform_int_distribution<int> map_dist(3, 6);
     int width = map_dist(mt);
     int height = map_dist(mt);
     uniform_int_distribution<bool> dist(false, true);
@@ -79,38 +77,48 @@ string remove_spaces(string &line)
 void	read_table(const char *name, vector<vector<bool>> &table)
 {
 	ifstream file(name);
-	if (!file)
+	if (!file) {
         throw "File could not be opened";
+    }
 	while (file) {
         string line;
         vector <bool> str;
         getline(file, line);
         remove_spaces(line);
         for (char c : line) {
-            if (c == '1')
+            if (c == '1') {
                 str.push_back(true);
-            else if (c == '0')
+            }
+            else if (c == '0') {
                 str.push_back(false);
-            else
+            }
+            else {
                 throw "Invalid character in board(only 1 and 0 allowed)";
+            }
         }
-        if  (!str.empty())
+        if  (!str.empty()) {
             table.push_back(str);
+        }
     }
 }
 
 void    input_validation(vector<vector<bool>> &table, int argc, char *argv[])
 {
-    if (argc == 1 || !strcmp(argv[1], "-h") || !strcmp(argv[1], "--help"))
+    if (argc == 1 || !strcmp(argv[1], "-h") || !strcmp(argv[1], "--help")) {
         print_usage();
-    else if (argc == 2 && !strcmp(argv[1], "-g"))
+    }
+    else if (argc == 2 && !strcmp(argv[1], "-g")) {
         generate_table(table);
-    else if (argc == 3 && !strcmp(argv[1], "-f"))
+    }
+    else if (argc == 3 && !strcmp(argv[1], "-f")) {
         read_table(argv[2], table);
-    else if (argc > 3)
+    }
+    else if (argc > 3) {
         throw "Too many arguments";
-    else
+    }
+    else {
         print_usage();
+    }
 }
 
 int     cell_neighbors(const vector<vector<bool>> &table, const int row, const int col)
@@ -118,12 +126,15 @@ int     cell_neighbors(const vector<vector<bool>> &table, const int row, const i
     int neig (0);
     for (int i = -1; i < 2; ++i) {
         for (int j = -1; j < 2; ++j) {
-            if (i == 0 && j == 0)
+            if (i == 0 && j == 0) {
+                continue;
+            }
+            if (row + i < 0 || col + j < 0) {
                 continue ;
-            if (row + i < 0 || col + j < 0)
+            }
+            if (row + i >= table.size() || col + j >= table[row + i].size()) {
                 continue ;
-            if (row + i >= table.size() || col + j >= table[row + i].size())
-                continue ;
+            }
             neig += static_cast<int>(table[row + i][col + j]);
         }
     }
@@ -152,10 +163,12 @@ bool    interaction (vector<vector<bool>> &table)
            }
         }
     }
-    if (!all_zero)
+    if (!all_zero) {
         cout << "Stop: Further in the output only zeros" << '\n';
-    if (no_changes)
+    }
+    if (no_changes) {
         cout << "Stop: No further changes" << '\n';
+    }
     return (!no_changes & all_zero);
 }
 
@@ -170,8 +183,9 @@ int		main(int argc, char *argv[])
             loop = interaction(table);
             auto wait = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - time_0);
             this_thread::sleep_for(chrono::seconds{1} - wait);
-            if (loop)
+            if (loop) {
                 print_table(table);
+            }
         }
     }
     catch (const char* exception) {
@@ -186,6 +200,5 @@ int		main(int argc, char *argv[])
         cerr << "We caught an exception of an undetermined type!\n";
         exit(1);
     }
-	return(0);
-
+	return (0);
 }
